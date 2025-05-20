@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block head %}
+<style>
+  body {
+    background-color: #fff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #222;
+    margin: 0;
+  }
+
+  .container {
+    color: #222;
+    padding: 60px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  h1.title, h2.subtitle {
+    text-align: center;
+    margin: 0;
+  }
+
+  h1.title {
+    font-size: 32px;
+    font-weight: bold;
+  }
+
+  h2.subtitle {
+    font-size: 20px;
+    color: #777;
+    margin-bottom: 40px;
+  }
+
+  .quiz-container {
+    background-color: #f9f9f9;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+  }
+
+
+  .options {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+  }
+
+  .option {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  max-width: 220px; 
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border: 2px solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+
+  .option:hover, .option.selected {
+    border-color: #00bfa5;
+    background-color: #e0f7f4;
+  }
+
+  .option img {
+  width: 160px;           
+  height: 160px;          
+  object-fit: cover;  
+  border-radius: 14px;
+  margin-bottom: 10px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.08); 
+}
+
+input, select {
+  padding: 20px 24px;           
+  font-size: 20px;             
+  width: 100%;
+  max-width: 450px;             
+  border: 2px solid #ccc;       
+  border-radius: 14px;          
+  margin-bottom: 24px;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05); 
+}
+
+
+
+  button {
+    background-color: #00bfa5;
+    color: #fff;
+    border: none;
+    padding: 14px 36px;
+    font-size: 18px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+    margin-top: 20px;
+  }
+
+  button:hover {
+    background-color: #00a18e;
+  }
+
+  button:disabled {
+    background-color: #b2dfdb;
+    cursor: not-allowed;
+  }
+
+  .quiz-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.quiz-step.active {
+  display: flex;
+  opacity: 1;
+}
+
+.quiz-step input,
+.quiz-step select {
+  margin-bottom: 0; 
+}
+.quiz-step button {
+  background-color: #f7db7e; 
+  color: #222;
+  border: none;
+  padding: 10px 50px; 
+  font-size: 16px;
+  font-weight: 600;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+  margin-top: 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  width: 100%;
+  max-width: 250px;
+}
+
+.quiz-step button:hover {
+  background-color: #fbbf24; /* daha koyu sarı tonu */
+  transform: scale(1.02);
+}
+.quiz-step h2 {
+  font-size: 26px;
+  font-weight: 600;
+  color: #333;
+}
+
+
+</style>
+{% endblock %}
+
+{% block content %}
+<h1 class="title">KİŞİSELLEŞTİRİLMİŞ YEMEK PLANI</h1>
+
+
+<div class="container">
+  <div class="quiz-container" id="quiz">
+    <p>
+      <a href="${data.bilgi_linki}" target="_blank" class="btn btn-info">
+        Diyet Hakkında Detaylı Bilgi
+      </a>
+    </p>
+    
+  </div>
+</div>
+
+<script>
+const steps = [
+  { question: "Cinsiyetinizi Seçin", type: "image", options: ["Erkek", "Kadın"] },
+  { question: "Yaşınızı girin", type: "input", inputType: "number", key: "yas" },
+  { question: "Kilonuzu girin (kg)", type: "input", inputType: "number", key: "kilo" },
+  { question: "Boyunuzu girin (cm)", type: "input", inputType: "number", key: "boy" },
+  { question: "Günlük Su Tüketimi (litre)", type: "input", inputType: "number", key: "su" },
+  { question: "Aktivite Düzeyi", type: "select", options: ["Düşük", "Orta", "Yüksek"], key: "aktivite" },
+  { question: "Alerji", type: "select", options: ["Yok", "Laktoz", "Gluten", "Fıstık"], key: "alerji" },
+  { question: "Uyku Düzeni", type: "select", options: ["Düzenli", "Düzensiz"], key: "uyku" },
+  { question: "Stres Düzeyi", type: "select", options: ["Düşük", "Orta", "Yüksek"], key: "stres" }
+];
+
+let currentStep = 0;
+let answers = {};
+const quiz = document.getElementById("quiz");
+
+function showStep() {
+  quiz.innerHTML = "";
+  const step = steps[currentStep];
+  const stepDiv = document.createElement("div");
+  stepDiv.className = "quiz-step active";
+
+  const h2 = document.createElement("h2");
+  h2.textContent = step.question;
+  stepDiv.appendChild(h2);
+
+  if (step.type === "image") {
+    const optionsDiv = document.createElement("div");
+    optionsDiv.className = "options";
+    step.options.forEach(option => {
+      const opt = document.createElement("div");
+      opt.className = "option";
+      opt.innerHTML = `
+        <img src="../static/resimler/${option.toLowerCase()}1.jpeg" alt="${option}" />
+        <p>${option}</p>
+      `;
+      opt.onclick = () => {
+        answers["cinsiyet"] = option;
+        sendAnswer("cinsiyet", option);
+        nextStep();
+      };
+      optionsDiv.appendChild(opt);
+    });
+    stepDiv.appendChild(optionsDiv);
+  }else if (step.type === "input") {
+  const input = document.createElement("input");
+  input.type = step.inputType;
+  input.placeholder = step.question;
+  stepDiv.appendChild(input);
+
+  const btn = document.createElement("button");
+  btn.textContent = "İleri";
+  btn.style.marginTop = "10px";
+  btn.onclick = () => {
+    const value = input.value;
+    if (!value) return;
+    answers[step.key] = value;
+    sendAnswer(step.key, value);
+    nextStep();
+  };
+  stepDiv.appendChild(btn);
+} else if (step.type === "select") {
+  const optionsDiv = document.createElement("div");
+  optionsDiv.className = "options";
+  
+  step.options.forEach(opt => {
+    const optionDiv = document.createElement("div");
+    optionDiv.className = "option";
+    optionDiv.textContent = opt;
+
+    optionDiv.onclick = () => {
+      answers[step.key] = opt;
+      sendAnswer(step.key, opt);
+      nextStep();
+    };
+
+    optionsDiv.appendChild(optionDiv);
+  });
+
+  stepDiv.appendChild(optionsDiv);
+}
+
+
+  quiz.appendChild(stepDiv);
+}
+
+function nextStep() {
+  currentStep++;
+  if (currentStep < steps.length) {
+    showStep();
+  } else {
+    showResult();
+  }
+}
+
+function sendAnswer(key, value) {
+  fetch("/submit", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ [key]: value })
+  });
+}
+function showResult() {
+  fetch("/result")
+    .then(res => res.json())
+    .then(data => {
+      quiz.innerHTML = `
+        <div class="result-card" style="
+          background-color: #e6f9f7;
+          padding: 40px;
+          border-radius: 20px;
+          text-align: center;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        ">
+          <h2 style="
+            font-size: 28px;
+            color: #00bfa5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+          ">
+            🥗 Önerilen Diyet Planı
+          </h2>
+          <div style="
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #222;
+          ">
+            ✅ ${data.diyet}
+          </div>
+          <div style="
+            font-size: 18px;
+            color: #444;
+            line-height: 1.6;
+            margin-bottom: 30px;
+          ">
+            📌 ${data.aciklama}
+          </div>
+          <a href="${data.bilgi_linki}" target="_blank" style="
+            display: inline-block;
+            padding: 12px 30px;
+            background-color: #00bfa5;
+            color: white;
+            font-weight: 600;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: background-color 0.3s ease;
+          " onmouseover="this.style.backgroundColor='#009e8f'" onmouseout="this.style.backgroundColor='#00bfa5'">
+            📖 Detaylı Bilgi Al
+          </a>
+        </div>
+      `;
+    });
+}
+
+
+
+showStep();
+</script>
+{% endblock %}

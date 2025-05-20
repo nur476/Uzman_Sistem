@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Flask Auth Example</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.2/css/bulma.min.css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+</head>
+{% block head %}{% endblock %}
+<style>
+    body {
+  font-family: 'Arial', sans-serif;
+
+ 
+  background: #f5f5f5;
+  margin: 0;
+  
+}
+
+
+
+</style>
+
+
+<body class="bg-gradient-to-br from-green-50 to-white min-h-screen">
+
+
+  <header class="bg-white shadow-md">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center py-4">
+        <div class="text-2xl font-bold text-green-600">
+          <a href="{{ url_for('main.index') }}">FitLife</a>
+        </div>
+
+        <!-- Hamburger button (mobile) -->
+        <div class="md:hidden">
+          <button id="menu-toggle" class="text-green-600 focus:outline-none">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor"
+              viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Menu items -->
+        <nav id="nav-menu" class="hidden md:flex space-x-6 text-gray-700 text-sm">
+          <a href="{{ url_for('main.index') }}" class="hover:text-green-600 font-medium">Ana Sayfa</a>
+          {% if current_user.is_authenticated %}
+          <a href="{{ url_for('main.profile') }}" class="hover:text-green-600 font-medium">Profilim</a>
+          <a href="{{ url_for('auth.logout') }}" class="hover:text-red-500 font-medium">Çıkış</a>
+          {% else %}
+          <a href="{{ url_for('auth.login') }}" class="hover:text-green-600 font-medium">Giriş</a>
+          <a href="{{ url_for('auth.signup') }}" class="hover:text-green-600 font-medium">Kayıt Ol</a>
+          {% endif %}
+        </nav>
+      </div>
+
+      <!-- Mobile Menu -->
+      <div id="mobile-menu" class="md:hidden hidden flex-col space-y-2 py-4">
+        <a href="{{ url_for('main.index') }}" class="block text-sm text-gray-700 hover:text-green-600">Ana Sayfa</a>
+        {% if current_user.is_authenticated %}
+        <a href="{{ url_for('main.profile') }}" class="block text-sm text-gray-700 hover:text-green-600">Profilim</a>
+        <a href="{{ url_for('auth.logout') }}" class="block text-sm text-red-500 hover:underline">Çıkış</a>
+        {% else %}
+        <a href="{{ url_for('auth.login') }}" class="block text-sm text-gray-700 hover:text-green-600">Giriş</a>
+        <a href="{{ url_for('auth.signup') }}" class="block text-sm text-gray-700 hover:text-green-600">Kayıt Ol</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="py-20 bg-green-100">
+    <div class="max-w-4xl mx-auto text-center px-4">
+      <h1 class="text-4xl font-bold text-green-700 mb-4">Sağlıklı Yaşam İçin Kişiye Özel Diyet Önerileri</h1>
+      <p class="text-gray-700 text-lg">Bilimsel temellere dayalı beslenme planları ile daha sağlıklı bir yaşam seni bekliyor.</p>
+    </div>
+  </section>
+
+  <!-- Main Content -->
+  <main class="py-10">
+    <div class="max-w-5xl mx-auto px-4">
+      {% block content %}
+      <!-- Sayfa içeriği -->
+      {% endblock %}
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-white shadow-inner mt-10 border-t">
+    <div class="max-w-7xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-3 gap-8 text-sm text-gray-600">
+      <div>
+        <h3 class="font-semibold text-green-700 mb-2">FitLife Hakkında</h3>
+        <p>FitLife, sağlıklı yaşamı destekleyen kişiye özel diyet ve yaşam önerileri sunan bir platformdur.</p>
+      </div>
+      <div>
+        <h3 class="font-semibold text-green-700 mb-2">Bağlantılar</h3>
+        <ul>
+          <li><a href="#" class="hover:underline">Gizlilik Politikası</a></li>
+          <li><a href="#" class="hover:underline">Kullanım Şartları</a></li>
+          <li><a href="#" class="hover:underline">Sık Sorulan Sorular</a></li>
+        </ul>
+      </div>
+      <div>
+        <h3 class="font-semibold text-green-700 mb-2">İletişim</h3>
+        <p>Email: destek@fitlife.com</p>
+        <div class="flex space-x-4 mt-2">
+          <a href="#" class="text-green-600 hover:text-green-800">Facebook</a>
+          <a href="#" class="text-green-600 hover:text-green-800">Instagram</a>
+        </div>
+      </div>
+    </div>
+    <div class="text-center text-gray-400 py-4 text-xs border-t">© 2025 FitLife. Tüm hakları saklıdır.</div>
+  </footer>
+
+  <!-- Mobile Menu Toggle Script -->
+  <script>
+    const toggleBtn = document.getElementById('menu-toggle');
+    const mobileMenu = document.getElementById('mobile-menu');
+
+    toggleBtn.addEventListener('click', () => {
+      mobileMenu.classList.toggle('hidden');
+    });
+  </script>
+
+</body>
+
+</html>
